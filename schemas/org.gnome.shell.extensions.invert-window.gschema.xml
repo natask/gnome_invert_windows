@@ -3,6 +3,23 @@
 	<schema path="/org/gnome/shell/extensions/invert-window/" id="org.gnome.shell.extensions.invert-window">
 		<key type="as" name="invert-window-shortcut">
 			<default><![CDATA[['<Ctrl><Alt>X']]]></default>
+			<summary>invert window shortcut</summary>
+			<description>toggle invert window</description>
+		</key>
+		<key type="as" name="invert-all-windows-shortcut">
+			<default><![CDATA[['<Ctrl><Shift><Alt>X']]]></default>
+			<summary>invert all windows shortcut</summary>
+			<description>toggle invert all windows</description>
+		</key>
+		<key type="a{ss}" name="user-shader-sources">
+			<default>{"":""}</default>
+			<summary>current user shader sources</summary>
+			<description>user shader sources</description>
+		</key>
+		<key type="s" name="select-shader-source">
+			<default>"perfect"</default>
+			<summary>select which shader source to use</summary>
+			<description>select shader source</description>
 		</key>
 	</schema>
 </schemalist>
