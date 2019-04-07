@@ -93,9 +93,58 @@ const default_shader_sources = {
 			} \
 		'
 }
+
 var shader_sources = Object.assign(default_shader_sources, USER_SHADER_SOURCES);
 schema.set_strv('all-user-shader-source-keys', Object.keys(shader_sources));
 //schema.set_value('user-shader-sources', new imports.gi.GLib.Variant("a{ss}", USER_SHADER_SOURCES));
+var black_list = ["atom".toLowerCase()]
+var white_list = [""]
+
+var pid_wm_class_pair = {
+	insert: function(pid, wm_class){
+		if(! this[pid]){
+			this[pid] = [wm_class.toLowerCase(),1];
+ 		} else{
+			if(wm_class){ //to not replace on m_class empy in case of menu windows and such and only have good pid,class pairs
+				this[pid][0] = wm_class.toLowerCase();
+			}
+			this[pid][1] += 1;
+		}
+	},
+	remove: function(pid, wm_class) {
+		if (this[pid]) {
+			this[pid][1] -= 1;
+			if (this[pid][1] == 0){
+				delete this[pid];
+			}
+		}
+	},
+	get: function(pid){
+		var ret = undefined;
+		if(this[pid]){ //to not replace on m_class empy in case of menu windows and such and only have good pid,class pairs
+			 ret = this[pid][0];
+		}
+		return ret;
+	}
+}
+var currently_inverted_windows = {
+	get: function(window_string){
+		return this[window_string];
+	},
+	remove: function(window_string){
+		delete this[window_string];
+	}
+}
+
+
+global.get_window_actors().forEach(function(actor) {
+	let meta_window = actor.get_meta_window();
+	pid_wm_class_pair.insert(meta_window.get_pid(), meta_window.get_wm_class());
+	actor.connect("destroy", (actor) => {
+		let meta_window = actor.get_meta_window();
+		pid_wm_class_pair.remove(meta_window.get_pid(), meta_window.get_wm_class());
+	});
+});
 
 const InvertWindowEffect = new Lang.Class({
 	Name: 'InvertWindowEffect',
@@ -122,15 +171,42 @@ function InvertWindow() {
 	this.settings = Convenience.getSettings();
 }
 
-global.display.connect("window-created", (dis, win) => global.get_window_actors().forEach(function(actor) {
-    let meta_window = actor.get_meta_window();
-    if(meta_window == win){
-        effect = new InvertWindowEffect();
-				actor.remove_effect_by_name('invert-color'); //just to clear
-        actor.add_effect_with_name('invert-color', effect);
-        win.invert_window_tag = true;
-    }
-}))
+// global.display.connect("window-created", (dis, win) => global.get_window_actors().forEach(function(actor) {
+//     let meta_window = actor.get_meta_window();
+//     if(meta_window == win){
+//         effect = new InvertWindowEffect();
+// 				actor.remove_effect_by_name('invert-color'); //just to clear
+//         actor.add_effect_with_name('invert-color', effect);
+//         win.invert_window_tag = true;
+//     }
+// }))
+global.display.connect("window-created", (dis,win) => {
+	let actor = win.get_compositor_private();
+  let effect = new InvertWindowEffect();
+	//actor.remove_effect_by_name('invert-color'); //just to clear
+	let pid =  win.get_pid();
+	let wm_class =  win.get_wm_class();
+	if(! black_list.includes(pid_wm_class_pair[pid])){
+  	actor.add_effect_with_name('invert-color', effect);
+		currently_inverted_windows.add(win.toString());
+  	win.invert_window_tag = true;
+	}
+	pid_wm_class_pair.insert(pid, wm_class);
+	// global.log(win.get_transient_for());
+	// global.log(win.get_pid());
+	// global.log(win.get_wm_class_instance());
+	// global.log(win.is_skip_taskbar());
+	// global.log(win.get_layer());
+	// global.log(win.get_role());
+	// global.log(win.get_window_type());
+	// global.log(win.get_gtk_application_id ());
+	// global.log(win.get_gtk_unique_bus_name ());
+	// global.log(win.get_gtk_application_object_path ());
+	// global.log(win.get_gtk_window_object_path ());
+	// global.log(win.get_gtk_app_menu_object_path ());
+	// global.log(win.get_gtk_menubar_object_path ());
+})
+
 InvertWindow.prototype = {
 	oNchangedShaderSourceSelector: function() {
 		SELECT_SHADER_SOURCE = this.settings.get_string('select-shader-source');
@@ -152,28 +228,37 @@ InvertWindow.prototype = {
 				if(actor.get_effect('invert-color')) {
 					actor.remove_effect_by_name('invert-color');
 					delete meta_window._invert_window_tag;
+					currently_inverted_windows.remove(meta_window.toString());
 				}
 				else {
 					let effect = new InvertWindowEffect();
 					actor.add_effect_with_name('invert-color', effect);
 					meta_window._invert_window_tag = true;
+					currently_inverted_windows.add(meta_window.toString());
 				}
 			}
 		}, this);
 	},
 
 	toggle_effect_all: function() {
+		// var k = "gdbus call --session --dest org.gnome.Shell --object-path /org/gnome/Shell --method org.gnome.Shell.Eval 'Main.lookingGlass.toggle();'";
+		// var s = ['/bin/bash', '-c', k];
+		// //var f = k.split(" ");
+		// //Util.spawn(s.concat(f));
+		// Util.spawn(s);
 		global.get_window_actors().forEach(function(actor) {
 			let meta_window = actor.get_meta_window();
 			if(meta_window.get_wm_class()) {
 				if(actor.get_effect('invert-color')) {
 					actor.remove_effect_by_name('invert-color');
 					delete meta_window._invert_window_tag;
+					currently_inverted_windows.remove(meta_window.toString());
 				}
 				else {
 					let effect = new InvertWindowEffect();
 					actor.add_effect_with_name('invert-color', effect);
 					meta_window._invert_window_tag = true;
+					currently_inverted_windows.add(meta_window.toString());
 				}
 			}
 		}, this);
@@ -202,6 +287,7 @@ InvertWindow.prototype = {
 			if(meta_window.hasOwnProperty('_invert_window_tag')) {
 				let effect = new InvertWindowEffect();
 				actor.add_effect_with_name('invert-color', effect);
+				currently_inverted_windows.add(meta_window.toString());
 				meta_window._invert_window_tag = true;
 			}
 		}, this);
@@ -211,7 +297,7 @@ InvertWindow.prototype = {
 	add: function() {
 		global.get_window_actors().forEach(function(actor) {
 			let meta_window = actor.get_meta_window();
-			if(meta_window.get_wm_class()) {
+			if(currently_inverted_windows[meta_window.toString()]) {
 					let effect = new InvertWindowEffect();
 					actor.add_effect_with_name('invert-color', effect);
 					meta_window._invert_window_tag = true;
