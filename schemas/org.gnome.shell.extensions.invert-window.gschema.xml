@@ -12,9 +12,14 @@
 			<description>toggle invert all windows</description>
 		</key>
 		<key type="a{ss}" name="user-shader-sources">
-			<default>{"":""}</default>
+			<default>{}</default>
 			<summary>current user shader sources</summary>
 			<description>user shader sources</description>
+		</key>
+		<key type="as" name="all-user-shader-source-keys">
+			<default>[]</default>
+			<summary>keys for all current shader sources</summary>
+			<description>all shader source keys</description>
 		</key>
 		<key type="s" name="select-shader-source">
 			<default>"perfect"</default>

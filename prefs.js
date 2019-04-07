@@ -14,10 +14,10 @@ function buildPrefsWidget () { // eslint-disable-line no-unused-vars
   const invertWindowShortcutDescription = schema.settings_schema.get_key('invert-window-shortcut').get_description()
   const invertAllWindowsShortcut = schema.settings_schema.get_key('invert-all-windows-shortcut').get_summary()
   const invertAllWindowsShortcutDescription = schema.settings_schema.get_key('invert-all-windows-shortcut').get_description()
-  const userShaderSources = schema.settings_schema.get_key('user-shader-sources').get_summary()
-  const userShaderSourcesDescription = schema.settings_schema.get_key('user-shader-sources').get_description()
   const selectShaderSource = schema.settings_schema.get_key('select-shader-source').get_summary()
   const selectShaderSourceDescription = schema.settings_schema.get_key('select-shader-source').get_description()
+  const allUserShaderSourceKeys = schema.settings_schema.get_key('all-user-shader-source-keys').get_summary()
+  const allUserShaderSourceKeysDescription = schema.settings_schema.get_key('all-user-shader-source-keys').get_description()
   // Create children objects
   const widgets = [
     {
@@ -79,23 +79,17 @@ function buildPrefsWidget () { // eslint-disable-line no-unused-vars
     },
     {
       type: 'Label',
-      params: { label: `${userShaderSources}: ` },
-      tooltip: userShaderSourcesDescription,
+      params: { label: `${allUserShaderSourceKeys}: ` },
+      tooltip: allUserShaderSourceKeysDescription,
       align: Gtk.Align.END,
       attach: [0, 4, 1, 1]
     },
     {
-      type: 'Entry',
-      params: {  text: JSON.stringify(schema.get_value('user-shader-sources').deep_unpack())},
-      tooltip: userShaderSourcesDescription,
+      type: 'Label',
+      params: {  label: schema.get_strv('all-user-shader-source-keys').toString()},
+      tooltip: allUserShaderSourceKeysDescription,
       align: Gtk.Align.START,
-      attach: [1, 4, 1, 1],
-      connect: {
-        'changed': self => {
-          value = new imports.gi.GLib.Variant("a{ss}",self.text);
-          if(value) {schema.set_value('user-shader-sources', value);}_/* can use JSON.parse('{' + self.text + '}'); if JSON is legal. maybe a security hole. but doesn't exit the scope of the extension space. can run anything an extension can do here. actaully needs stanition. can be set by any script using gsettings -> bad.*/
-        }
-      }
+      attach: [1, 4, 1, 1]
     },
     {
       type: 'Label',
