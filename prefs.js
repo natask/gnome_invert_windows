@@ -72,16 +72,18 @@ function buildPrefsWidget () { // eslint-disable-line no-unused-vars
       attach: [0, 3, 1, 1]
     },
     {
-      type: 'Entry',
-      params: {text: schema.get_string('select-shader-source')},
+      type: 'ComboBoxText',
+      params: {},
       tooltip: selectShaderSourceDescription,
       align: Gtk.Align.START,
       attach: [1, 3, 1, 1],
       connect: {
         'changed': self => {
-          schema.set_string('select-shader-source', self.text)
+          schema.set_string('select-shader-source',self.get_active_text())
         }
-      }
+      },
+      insert: schema.get_strv('all-user-shader-source-keys'),
+      active: schema.get_string('select-shader-source')
     },
     {
       type: 'Label',
@@ -92,7 +94,7 @@ function buildPrefsWidget () { // eslint-disable-line no-unused-vars
     },
     {
       type: 'Label',
-      params: {  label: schema.get_strv('all-user-shader-source-keys').toString()},
+      params: { label: schema.get_strv('all-user-shader-source-keys').toString()},
       tooltip: allUserShaderSourceKeysDescription,
       align: Gtk.Align.START,
       attach: [1, 4, 1, 1]
@@ -151,7 +153,7 @@ function buildPrefsWidget () { // eslint-disable-line no-unused-vars
     margin: 10
   })
 
-  widgets.map(function createWidget ({ type, params, tooltip, align, attach, connect }) {
+  widgets.map(function createWidget ({ type, params, tooltip, align, attach, connect, insert, active }) {
     const widget = new Gtk[type](params)
 
     // Set description
@@ -166,6 +168,12 @@ function buildPrefsWidget () { // eslint-disable-line no-unused-vars
       Object.keys(connect).map(function performConnect (signal) {
         widget.connect(signal, () => connect[signal](widget))
       })
+    }
+    if (insert){
+      insert.forEach((entry) => widget.append_text(entry))
+      if (active){
+        widget.set_active(insert.indexOf(active))
+      }
     }
 
     vbox.attach(widget, ...attach)
