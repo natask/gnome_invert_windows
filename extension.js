@@ -128,6 +128,9 @@ var pid_wm_class_pair = {
 	}
 }
 var currently_inverted_windows = {
+	add: function(window_string){
+			this[window_string] = true;
+	},
 	get: function(window_string){
 		return this[window_string];
 	},
