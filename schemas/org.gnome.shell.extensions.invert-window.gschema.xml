@@ -36,5 +36,10 @@
 			<summary>white list invertion of window class</summary>
 			<description>starts inverted. toggle-all doesn't affect window class</description>
 		</key>
+		<key type="b" name="restart-after-selector-change">
+			<default>false</default>
+			<summary>restart after selector is changed</summary>
+			<description>reapplies shader to all windows not just windows inverted after change.</description>
+		</key>
 	</schema>
 </schemalist>

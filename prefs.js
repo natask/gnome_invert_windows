@@ -24,6 +24,11 @@ function buildPrefsWidget () { // eslint-disable-line no-unused-vars
 
   const whiteList = schema.settings_schema.get_key('white-list').get_summary()
   const whiteListDescription = schema.settings_schema.get_key('white-list').get_description()
+
+  const restartAfterChange = schema.settings_schema.get_key('restart-after-selector-change').get_summary()
+  const restartAfterChangeDescription = schema.settings_schema.get_key('restart-after-selector-change').get_description()
+
+
   // Create children objects
   const widgets = [
     {
@@ -74,7 +79,7 @@ function buildPrefsWidget () { // eslint-disable-line no-unused-vars
     {
       type: 'ComboBoxText',
       params: {},
-      tooltip: selectShaderSourceDescription,
+      tooltip: allUserShaderSourceKeysDescription,
       align: Gtk.Align.START,
       attach: [1, 3, 1, 1],
       connect: {
@@ -87,17 +92,22 @@ function buildPrefsWidget () { // eslint-disable-line no-unused-vars
     },
     {
       type: 'Label',
-      params: { label: `${allUserShaderSourceKeys}: ` },
-      tooltip: allUserShaderSourceKeysDescription,
+      params: { label: `${restartAfterChange}: ` },
+      tooltip: restartAfterChangeDescription,
       align: Gtk.Align.END,
       attach: [0, 4, 1, 1]
     },
     {
-      type: 'Label',
-      params: { label: schema.get_strv('all-user-shader-source-keys').toString()},
-      tooltip: allUserShaderSourceKeysDescription,
+      type: 'Entry',
+      params: { text: schema.get_boolean('restart-after-selector-change').toString()},
+      tooltip: restartAfterChangeDescription,
       align: Gtk.Align.START,
-      attach: [1, 4, 1, 1]
+      attach: [1, 4, 1, 1],
+      connect: {
+        'changed': self => {
+          schema.set_boolean('restart-after-selector-change', self.text.toLowerCase() == 'true')
+        }
+      }
     },
     {
       type: 'Label',

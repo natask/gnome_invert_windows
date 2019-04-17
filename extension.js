@@ -101,7 +101,8 @@ var black_list = schema.get_strv('black-list').map((x) => x.toLowerCase());
 var white_list = schema.get_strv('white-list').map((x) => x.toLowerCase());
 
 function should_invert(wm_class){
-	return  !black_list.includes(wm_class.toLowerCase()) || white_list.includes(wm_class.toLowerCase());
+	return true;
+	//return  !black_list.includes(wm_class.toLowerCase()) || white_list.includes(wm_class.toLowerCase());
 }
 
 var pid_wm_class_pair = {
@@ -193,7 +194,7 @@ global.display.connect("window-created", (dis,win) => {
 	//actor.remove_effect_by_name('invert-color'); //just to clear
 	let pid =  win.get_pid();
 	let wm_class =  win.get_wm_class();
-	if(should_invert(wm_class)){
+	if(should_invert(pid_wm_class_pair.get(pid))){
   	actor.add_effect_with_name('invert-color', effect);
 		currently_inverted_windows.add(win.toString());
   	win.invert_window_tag = true;
@@ -217,6 +218,11 @@ global.display.connect("window-created", (dis,win) => {
 InvertWindow.prototype = {
 	oNchangedShaderSourceSelector: function() {
 		SELECT_SHADER_SOURCE = this.settings.get_string('select-shader-source');
+		let should_restart = this.settings.get_boolean('restart-after-selector-change');
+		if(true) {
+			this.disable();
+			this.enable();
+		}
 	},
 	oNchangedShaderSources: function() {
 		USER_SHADER_SOURCES = this.settings.get_value('user-shader-sources').deep_unpack();
@@ -241,7 +247,7 @@ InvertWindow.prototype = {
 				if(actor.get_effect('invert-color')) {
 					actor.remove_effect_by_name('invert-color');
 					delete meta_window._invert_window_tag;
-					currently_inverted_windows.remove(meta_window.toSt                                                                                                                                                                                                                                                                                                                                                            MJNB<<CVring());
+					currently_inverted_windows.remove(meta_window.toString());
 				}
 				else {
 					let effect = new InvertWindowEffect();
@@ -261,7 +267,7 @@ InvertWindow.prototype = {
 		// Util.spawn(s);
 		global.get_window_actors().forEach(function(actor) {
 			let meta_window = actor.get_meta_window();
-			if(!should_invert(wm_class)) {//user forced
+			if(true) {//!should_invert(wm_class) user forced
 				if(actor.get_effect('invert-color')) {
 					actor.remove_effect_by_name('invert-color');
 					delete meta_window._invert_window_tag;
