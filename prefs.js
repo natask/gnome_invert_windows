@@ -18,6 +18,12 @@ function buildPrefsWidget () { // eslint-disable-line no-unused-vars
   const selectShaderSourceDescription = schema.settings_schema.get_key('select-shader-source').get_description()
   const allUserShaderSourceKeys = schema.settings_schema.get_key('all-user-shader-source-keys').get_summary()
   const allUserShaderSourceKeysDescription = schema.settings_schema.get_key('all-user-shader-source-keys').get_description()
+
+  const blackList = schema.settings_schema.get_key('black-list').get_summary()
+  const blackListDescription = schema.settings_schema.get_key('black-list').get_description()
+
+  const whiteList = schema.settings_schema.get_key('white-list').get_summary()
+  const whiteListDescription = schema.settings_schema.get_key('white-list').get_description()
   // Create children objects
   const widgets = [
     {
@@ -93,10 +99,48 @@ function buildPrefsWidget () { // eslint-disable-line no-unused-vars
     },
     {
       type: 'Label',
+      params: { label: `${blackList}: ` },
+      tooltip: blackListDescription,
+      align: Gtk.Align.END,
+      attach: [0, 5, 1, 1]
+    },
+    {
+      type: 'Entry',
+      params: {text: schema.get_strv('black-list').toString()},
+      tooltip: blackListDescription,
+      align: Gtk.Align.START,
+      attach: [1, 5, 1, 1],
+      connect: {
+        'changed': self => {
+          schema.set_strv('black-list', self.text.split(','))
+        }
+      }
+    },
+    {
+      type: 'Label',
+      params: { label: `${whiteList}: ` },
+      tooltip: whiteListDescription,
+      align: Gtk.Align.END,
+      attach: [0, 6, 1, 1]
+    },
+    {
+      type: 'Entry',
+      params: {text: schema.get_strv('white-list').toString()},
+      tooltip: whiteListDescription,
+      align: Gtk.Align.START,
+      attach: [1, 6, 1, 1],
+      connect: {
+        'changed': self => {
+          schema.set_strv('white-list', self.text.split(','))
+        }
+      }
+    },
+    {
+      type: 'Label',
       params: { label: 'change org.gnome.shell.extensions.invert-window.user-shader-sources in dconf-editor or gsettings to edit user-shader-sources.' },
       tooltip: "set current user shader sources",
       align: Gtk.Align.CENTER,
-      attach: [0, 5, 2, 1]
+      attach: [0, 7, 2, 1]
     }
   ]
 

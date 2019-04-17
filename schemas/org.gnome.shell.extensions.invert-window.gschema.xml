@@ -26,5 +26,15 @@
 			<summary>select which shader source to use</summary>
 			<description>select shader source</description>
 		</key>
+		<key type="as" name="black-list">
+			<default>[]</default>
+			<summary>black list invertion of window class</summary>
+			<description>starts uninverted. toggle-all doesn't affect window class</description>
+		</key>
+		<key type="as" name="white-list">
+			<default>[]</default>
+			<summary>white list invertion of window class</summary>
+			<description>starts inverted. toggle-all doesn't affect window class</description>
+		</key>
 	</schema>
 </schemalist>
