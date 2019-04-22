@@ -101,8 +101,11 @@ var black_list = schema.get_strv('black-list').map((x) => x.toLowerCase());
 var white_list = schema.get_strv('white-list').map((x) => x.toLowerCase());
 
 function should_invert(wm_class){
-	return true;
-	//return  !black_list.includes(wm_class.toLowerCase()) || white_list.includes(wm_class.toLowerCase());
+	//return true;
+	return  !black_list.includes(wm_class.toLowerCase()) || white_list.includes(wm_class.toLowerCase());
+}
+function should_not_toggle(wm_class){
+	return  black_list.includes(wm_class.toLowerCase()) || white_list.includes(wm_class.toLowerCase());
 }
 
 var pid_wm_class_pair = {
@@ -194,7 +197,7 @@ global.display.connect("window-created", (dis,win) => {
 	//actor.remove_effect_by_name('invert-color'); //just to clear
 	let pid =  win.get_pid();
 	let wm_class =  win.get_wm_class();
-	if(should_invert(pid_wm_class_pair.get(pid))){
+	if(should_invert(wm_class) && ! Main.overview._shown){
   	actor.add_effect_with_name('invert-color', effect);
 		currently_inverted_windows.add(win.toString());
   	win.invert_window_tag = true;
@@ -267,7 +270,7 @@ InvertWindow.prototype = {
 		// Util.spawn(s);
 		global.get_window_actors().forEach(function(actor) {
 			let meta_window = actor.get_meta_window();
-			if(true) {//!should_invert(wm_class) user forced
+			if(should_not_toggle(wm_class)) {//! user forced
 				if(actor.get_effect('invert-color')) {
 					actor.remove_effect_by_name('invert-color');
 					delete meta_window._invert_window_tag;
@@ -309,6 +312,11 @@ InvertWindow.prototype = {
 				currently_inverted_windows.add(meta_window.toString());
 				meta_window._invert_window_tag = true;
 			}
+			let pid =  meta_window.get_pid();
+			let wm_class =  meta_window.get_wm_class();
+			if(pid_wm_class_pair.get(pid) === undefined){
+				pid_wm_class_pair.insert(pid, wm_class);
+			}
 		}, this);
 
 	},
@@ -316,10 +324,13 @@ InvertWindow.prototype = {
 	add: function() {
 		global.get_window_actors().forEach(function(actor) {
 			let meta_window = actor.get_meta_window();
-			if(currently_inverted_windows[meta_window.toString()]) {
+			if(currently_inverted_windows[meta_window.toString()]) { //equivalent to should_invert(meta_window.get_wm_class()) if done right
 					let effect = new InvertWindowEffect();
 					actor.add_effect_with_name('invert-color', effect);
 					meta_window._invert_window_tag = true;
+			} else{
+				actor.remove_effect_by_name('invert-color');
+				delete meta_window._invert_window_tag;
 			}
 		}, this);
 	},
@@ -336,9 +347,13 @@ InvertWindow.prototype = {
 	remove: function() {
 			global.get_window_actors().forEach(function(actor) {
 				let meta_window = actor.get_meta_window();
-				if(meta_window.get_wm_class()) {
+				if(should_invert(meta_window.get_wm_class())) { //equivalent to currently_inverted_windows[meta_window.toString()] if done right
 						actor.remove_effect_by_name('invert-color');
 						delete meta_window._invert_window_tag;
+				} else{
+					let effect = new InvertWindowEffect();
+					actor.add_effect_with_name('invert-color', effect);
+					meta_window._invert_window_tag = true;
 				}
 			}, this);
 
