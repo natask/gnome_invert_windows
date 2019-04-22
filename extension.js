@@ -220,12 +220,20 @@ global.display.connect("window-created", (dis,win) => {
 
 InvertWindow.prototype = {
 	oNchangedShaderSourceSelector: function() {
-		SELECT_SHADER_SOURCE = this.settings.get_string('select-shader-source');
-		let should_restart = this.settings.get_boolean('restart-after-selector-change');
-		if(true) {
-			this.disable();
-			this.enable();
+		let new_SELECT_SHADER_SOURCE = this.settings.get_string('select-shader-source');
+		let should_restart = this.settings.get_boolean('restart-after-selector-change');//don't need to keep state of should_restart
+		if(new_SELECT_SHADER_SOURCE != SELECT_SHADER_SOURCE && should_restart) {
+	    SELECT_SHADER_SOURCE = new_SELECT_SHADER_SOURCE;
+			global.get_window_actors().forEach(function(actor) {
+				let meta_window = actor.get_meta_window();
+				if(currently_inverted_windows[meta_window.toString()]) { //user forced
+						actor.remove_effect_by_name('invert-color');
+						let effect = new InvertWindowEffect();
+						actor.add_effect_with_name('invert-color', effect);
+				}
+			}, this);
 		}
+		SELECT_SHADER_SOURCE = new_SELECT_SHADER_SOURCE; //if should_restart is false we still update
 	},
 	oNchangedShaderSources: function() {
 		USER_SHADER_SOURCES = this.settings.get_value('user-shader-sources').deep_unpack();

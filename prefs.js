@@ -98,16 +98,18 @@ function buildPrefsWidget () { // eslint-disable-line no-unused-vars
       attach: [0, 4, 1, 1]
     },
     {
-      type: 'Entry',
-      params: { text: schema.get_boolean('restart-after-selector-change').toString()},
+      type: 'ComboBoxText',
+      params: {},
       tooltip: restartAfterChangeDescription,
       align: Gtk.Align.START,
       attach: [1, 4, 1, 1],
       connect: {
         'changed': self => {
-          schema.set_boolean('restart-after-selector-change', self.text.toLowerCase() == 'true')
+          schema.set_boolean('restart-after-selector-change', self.get_active_text() == 'true')
         }
-      }
+      },
+      insert: ["true","false"],
+      active: schema.get_boolean('restart-after-selector-change').toString()
     },
     {
       type: 'Label',
