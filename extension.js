@@ -196,11 +196,14 @@ global.display.connect("window-created", (dis,win) => {
   let effect = new InvertWindowEffect();
 	//actor.remove_effect_by_name('invert-color'); //just to clear
 	let pid =  win.get_pid();
-	let wm_class =  win.get_wm_class();
-	if(should_invert(wm_class) && ! Main.overview._shown){
+	let wm_class = pid_wm_class_pair.get(pid)? pid_wm_class_pair.get(pid): win.get_wm_class(); //look her to implmenet balkac and white list that doesent affec inner windows
+	if((!win.get_wm_class() ||  should_invert(wm_class)) && ! Main.overview._shown){//invert menus regardless to their window // can attach this to a settings
   	actor.add_effect_with_name('invert-color', effect);
 		currently_inverted_windows.add(win.toString());
   	win.invert_window_tag = true;
+	}
+	if((!win.get_wm_class() ||  should_invert(wm_class)) && Main.overview._shown){ //so that after exiting it is still inverted
+		currently_inverted_windows.add(win.toString());
 	}
 	pid_wm_class_pair.insert(pid, wm_class);
 	// global.log(win.get_transient_for());
