@@ -202,7 +202,7 @@ global.display.connect("window-created", (dis,win) => {
 		currently_inverted_windows.add(win.toString());
   	win.invert_window_tag = true;
 	}
-	if((!win.get_wm_class() ||  should_invert(wm_class)) && Main.overview._shown){ //so that after exiting it is still inverted
+	if( Main.overview._shown){ //so that after exiting it is still inverted
 		currently_inverted_windows.add(win.toString());
 	}
 	pid_wm_class_pair.insert(pid, wm_class);
@@ -281,7 +281,7 @@ InvertWindow.prototype = {
 		// Util.spawn(s);
 		global.get_window_actors().forEach(function(actor) {
 			let meta_window = actor.get_meta_window();
-			if(should_not_toggle(wm_class)) {//! user forced
+			if(should_not_toggle(meta_window.get_wm_class())) {//! user forced
 				if(actor.get_effect('invert-color')) {
 					actor.remove_effect_by_name('invert-color');
 					delete meta_window._invert_window_tag;
