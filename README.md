@@ -3,7 +3,7 @@ extension to invert windows in gnome. derived from maiself's work. currently spe
 
 # Features
 * inverts windows automatically when created
-* uninverts and uses xrandr-invert in overview mode to avoid bug with gnome 32- (fixed gnome 32 and +) see https://github.com/maiself/gnome-shell-extension-invert-color#10
+* uninverts and uses xrandr-invert in overview mode to avoid bug with gnome 32- (fixed gnome 32 and +) see https://github.com/maiself/gnome-shell-extension-invert-color/issues/10
 * can select between default shaders in settings
 * can add custom shader to apply in dconf editor/gsettings
 * application based whitelist and blacklist
