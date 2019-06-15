@@ -281,7 +281,7 @@ InvertWindow.prototype = {
 		// Util.spawn(s);
 		global.get_window_actors().forEach(function(actor) {
 			let meta_window = actor.get_meta_window();
-			if(should_not_toggle(meta_window.get_wm_class())) {//! user forced
+			if(! should_not_toggle(meta_window.get_wm_class())) {//! user forced
 				if(actor.get_effect('invert-color')) {
 					actor.remove_effect_by_name('invert-color');
 					delete meta_window._invert_window_tag;
@@ -350,6 +350,7 @@ InvertWindow.prototype = {
 		Main.wm.removeKeybinding(SHORTCUT);
 		Main.wm.removeKeybinding(SHORTCUT_ALL);
 		global.get_window_actors().forEach(function(actor) {
+			let meta_window = actor.get_meta_window();
 			actor.remove_effect_by_name('invert-color');
 			delete meta_window._invert_window_tag;
 		}, this);
