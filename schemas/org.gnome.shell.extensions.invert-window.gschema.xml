@@ -41,5 +41,10 @@
 			<summary>restart after selector is changed</summary>
 			<description>reapplies shader to all windows not just windows inverted after change.</description>
 		</key>
+		<key type="b" name="utilize-xrandr">
+			<default>false</default>
+			<summary>utilize xrandr invert colors</summary>
+			<description>by utilizing xrandr-invert-colors, medigate overview issue with gnome 32-. recommended for gnome 32-.</description>
+		</key>
 	</schema>
 </schemalist>

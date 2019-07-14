@@ -94,11 +94,13 @@ const default_shader_sources = {
 		'
 }
 
+// used global variables declaration
 var shader_sources = Object.assign(default_shader_sources, USER_SHADER_SOURCES);
 schema.set_strv('all-user-shader-source-keys', Object.keys(shader_sources));
 //schema.set_value('user-shader-sources', new imports.gi.GLib.Variant("a{ss}", USER_SHADER_SOURCES));
 var black_list = schema.get_strv('black-list').map((x) => x.toLowerCase());
 var white_list = schema.get_strv('white-list').map((x) => x.toLowerCase());
+var utilize_xrandr = schema.get_boolean('utilize-xrandr');
 
 function should_invert(wm_class){
 	//return true;
@@ -250,6 +252,10 @@ InvertWindow.prototype = {
 	oNchangedWhiteList: function() {
 	 	white_list = schema.get_strv('white-list').map((x) => x.toLowerCase());
 	},
+	oNchangedUtilizeXrandr: function() {
+		utilize_xrandr = this.settings.get_boolean('utilize-xrandr');
+	},
+
 	spawn_xrandr: function() {
 		Util.spawn(['/bin/bash', '-c', "xrandr-invert-colors"]);
 	},
@@ -378,14 +384,17 @@ InvertWindow.prototype = {
 					Main.overview,
 					'showing',
 					Lang.bind(this, function () {
-							this.spawn_xrandr(); this.remove();
+							if (utilize_xrandr){
+								this.spawn_xrandr();
+								this.remove();
+							}
 					})
 			],
 			[
 					Main.overview,
 					'hiding',
 					Lang.bind(this, function () {
-							this.spawn_xrandr(); this.add();
+							if (utilize_xrandr){this.spawn_xrandr(); this.add();}
 					})
 			]
 		);
@@ -410,6 +419,11 @@ InvertWindow.prototype = {
 					this.settings,
 					'changed::white-list',
 					Lang.bind(this, this.oNchangedWhiteList)
+			],
+			[
+					this.settings,
+					'changed::utilize-xrandr',
+					Lang.bind(this, this.oNchangedUtilizeXrandr)
 			]
 		);
 	}

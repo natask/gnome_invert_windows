@@ -28,6 +28,8 @@ function buildPrefsWidget () { // eslint-disable-line no-unused-vars
   const restartAfterChange = schema.settings_schema.get_key('restart-after-selector-change').get_summary()
   const restartAfterChangeDescription = schema.settings_schema.get_key('restart-after-selector-change').get_description()
 
+  const utilizeXrandr = schema.settings_schema.get_key('utilize-xrandr').get_summary()
+  const utilizeXrandrDescription = schema.settings_schema.get_key('utilize-xrandr').get_description()
 
   // Create children objects
   const widgets = [
@@ -113,17 +115,38 @@ function buildPrefsWidget () { // eslint-disable-line no-unused-vars
     },
     {
       type: 'Label',
+      params: { label: `${utilizeXrandr}: ` },
+      tooltip: utilizeXrandrDescription,
+      align: Gtk.Align.END,
+      attach: [0, 5, 1, 1]
+    },
+    {
+      type: 'ComboBoxText',
+      params: {},
+      tooltip: utilizeXrandrDescription,
+      align: Gtk.Align.START,
+      attach: [1, 5, 1, 1],
+      connect: {
+        'changed': self => {
+          schema.set_boolean('utilize-xrandr', self.get_active_text() == 'true')
+        }
+      },
+      insert: ["true","false"],
+      active: schema.get_boolean('utilize-xrandr').toString()
+    },
+    {
+      type: 'Label',
       params: { label: `${blackList}: ` },
       tooltip: blackListDescription,
       align: Gtk.Align.END,
-      attach: [0, 5, 1, 1]
+      attach: [0, 6, 1, 1]
     },
     {
       type: 'Entry',
       params: {text: schema.get_strv('black-list').toString()},
       tooltip: blackListDescription,
       align: Gtk.Align.START,
-      attach: [1, 5, 1, 1],
+      attach: [1, 6, 1, 1],
       connect: {
         'changed': self => {
           schema.set_strv('black-list', self.text.split(','))
@@ -135,14 +158,14 @@ function buildPrefsWidget () { // eslint-disable-line no-unused-vars
       params: { label: `${whiteList}: ` },
       tooltip: whiteListDescription,
       align: Gtk.Align.END,
-      attach: [0, 6, 1, 1]
+      attach: [0, 7, 1, 1]
     },
     {
       type: 'Entry',
       params: {text: schema.get_strv('white-list').toString()},
       tooltip: whiteListDescription,
       align: Gtk.Align.START,
-      attach: [1, 6, 1, 1],
+      attach: [1, 7, 1, 1],
       connect: {
         'changed': self => {
           schema.set_strv('white-list', self.text.split(','))
@@ -154,7 +177,7 @@ function buildPrefsWidget () { // eslint-disable-line no-unused-vars
       params: { label: 'change org.gnome.shell.extensions.invert-window.user-shader-sources in dconf-editor or gsettings to edit user-shader-sources.' },
       tooltip: "set current user shader sources",
       align: Gtk.Align.CENTER,
-      attach: [0, 7, 2, 1]
+      attach: [0, 8, 2, 1]
     }
   ]
 
