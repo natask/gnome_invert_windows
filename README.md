@@ -25,6 +25,6 @@ extension to invert windows in gnome. derived from maiself's work.
     ````
 
 # Issues
-* the xrandr-invert hack shows a noticable delay between un-inversion an inversion when opening or closing overview mode. This is solved by using gnome 32+ and/or disabling/not having xrandr-invert-color along with this extension.
+* the xrandr-invert hack shows a noticable delay between un-inversion and inversion when opening or closing overview mode. This is solved by using gnome 32+ and/or disabling/not having xrandr-invert-color along with this extension.
 * xrandr-invert sometimes mis-behaves and acts as if it has been called multiple times. Restarting gnome (alt+F2 and entering r) should fix the issue.
 * also there seems to be an issue with xrandr-invert-colors when the device recovers from sleep/suspend and maybe hibernate. This can be fixed by resetarting the extension/gnome (alt+F2 and entering r).

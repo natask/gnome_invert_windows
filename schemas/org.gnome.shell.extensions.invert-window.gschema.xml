@@ -26,16 +26,6 @@
 			<summary>select which shader source to use</summary>
 			<description>select shader source</description>
 		</key>
-		<key type="as" name="black-list">
-			<default>[]</default>
-			<summary>black list invertion of window class</summary>
-			<description>starts uninverted. toggle-all doesn't affect window class</description>
-		</key>
-		<key type="as" name="white-list">
-			<default>[]</default>
-			<summary>white list invertion of window class</summary>
-			<description>starts inverted. toggle-all doesn't affect window class</description>
-		</key>
 		<key type="b" name="restart-after-selector-change">
 			<default>false</default>
 			<summary>restart after selector is changed</summary>
@@ -46,5 +36,44 @@
 			<summary>utilize xrandr invert colors</summary>
 			<description>by utilizing xrandr-invert-colors, medigate overview issue with gnome 32-. recommended for gnome 32-.</description>
 		</key>
+
+		<key type="b" name="window-inversion-behavior">
+			<default>true</default>
+			<summary>window inversion behavior</summary>
+			<description>pick if you want to use black list or white list to manage window inversion.</description>
+		</key>
+		<key type="as" name="black-list">
+			<default>[]</default>
+			<summary>black list inversion of window class</summary>
+			<description> these windows are not inverted. every other window will be inverted.</description>
+		</key>
+		<key type="as" name="white-list">
+			<default>[]</default>
+			<summary>white list inversion of window class</summary>
+			<description>only these windows are inverted.</description>
+		</key>
+
+
+		<key type="b" name="couple-menu-behavior">
+			<default>true</default>
+			<summary>couple menu to window inversion</summary>
+			<description>whether or not menu inversion should follow window inversion. if true, Menu and window inversion behavior are coupled.</description>
+		</key>
+		<key type="b" name="menu-inversion-behavior">
+			<default>true</default>
+			<summary>menu inversion behavior</summary>
+			<description>pick if you want to use black list or white list to manage menu inversion. applies if menu and window inversion behavior are not coupled.</description>
+		</key>
+		<key type="as" name="menu-black-list">
+			<default>[]</default>
+			<summary>black list inversion of menu by window class</summary>
+			<description>menus created on these windows won't be inverted. menus created on every other window are still inverted.</description>
+		</key>
+		<key type="as" name="menu-white-list">
+			<default>[]</default>
+			<summary>white list inversion of menu by window class</summary>
+			<description>only menus created on these windows would be inverted.</description>
+		</key>
+
 	</schema>
 </schemalist>

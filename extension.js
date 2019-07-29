@@ -98,16 +98,38 @@ const default_shader_sources = {
 var shader_sources = Object.assign(default_shader_sources, USER_SHADER_SOURCES);
 schema.set_strv('all-user-shader-source-keys', Object.keys(shader_sources));
 //schema.set_value('user-shader-sources', new imports.gi.GLib.Variant("a{ss}", USER_SHADER_SOURCES));
-var black_list = schema.get_strv('black-list').map((x) => x.toLowerCase());
-var white_list = schema.get_strv('white-list').map((x) => x.toLowerCase());
+
 var utilize_xrandr = schema.get_boolean('utilize-xrandr');
+
+var window_inversion_behavior = schema.get_boolean('window-inversion-behavior'); //true == blacklist, false = whitelist
+var window_black_list = schema.get_strv('black-list').map((x) => x.toLowerCase());
+var window_white_list = schema.get_strv('white-list').map((x) => x.toLowerCase());
+
+
+var couple_menu_behavior = schema.get_boolean('couple-menu-behavior'); //true == link up with how the window is inverted
+var menu_inversion_behavior = schema.get_boolean('menu-inversion-behavior'); //true == menublacklist, false = menu whitelist
+var menu_black_list = schema.get_strv('menu-black-list').map((x) => x.toLowerCase());
+
+var menu_white_list = schema.get_strv('menu-white-list').map((x) => x.toLowerCase());
+
+function should_invert_menu(wm_class){
+	//return true;
+	var blacklistResult = !menu_black_list.includes(wm_class.toLowerCase()) && menu_inversion_behavior;
+	var whitelistResult = menu_white_list.includes(wm_class.toLowerCase()) && !menu_inversion_behavior;
+	return  blacklistResult || whitelistResult;
+}
 
 function should_invert(wm_class){
 	//return true;
-	return  !black_list.includes(wm_class.toLowerCase()) || white_list.includes(wm_class.toLowerCase());
+	var blacklistResult = !window_black_list.includes(wm_class.toLowerCase()) && window_inversion_behavior;
+	var whitelistResult = window_white_list.includes(wm_class.toLowerCase()) && !window_inversion_behavior;
+	return  blacklistResult || whitelistResult;
 }
+
 function should_not_toggle(wm_class){
-	return  black_list.includes(wm_class.toLowerCase()) || white_list.includes(wm_class.toLowerCase());
+	var blacklistResult = window_black_list.includes(wm_class.toLowerCase()) && window_inversion_behavior;
+	var whitelistResult = window_white_list.includes(wm_class.toLowerCase()) && !window_inversion_behavior;
+	return  blacklistResult || whitelistResult;
 }
 
 var pid_wm_class_pair = {
@@ -137,7 +159,7 @@ var pid_wm_class_pair = {
 		return ret;
 	}
 }
-var currently_inverted_windows = {
+var currently_inverted_windows = { //issues will arise if there are windows named add, get or remove because window_strings are added directly as childen of the object
 	add: function(window_string){
 			this[window_string] = true;
 	},
@@ -199,44 +221,110 @@ global.display.connect("window-created", (dis,win) => {
 	//actor.remove_effect_by_name('invert-color'); //just to clear
 	let pid =  win.get_pid();
 	let wm_class = pid_wm_class_pair.get(pid)? pid_wm_class_pair.get(pid): win.get_wm_class(); //look her to implmenet balkac and white list that doesent affec inner windows
-	if((!win.get_wm_class() ||  should_invert(wm_class)) && ! Main.overview._shown){//invert menus regardless to their window // can attach this to a settings
-  	actor.add_effect_with_name('invert-color', effect);
-		currently_inverted_windows.add(win.toString());
-  	win.invert_window_tag = true;
-	}
-	if( Main.overview._shown){ //so that after exiting it is still inverted
-		currently_inverted_windows.add(win.toString());
-	}
 	pid_wm_class_pair.insert(pid, wm_class);
-	// global.log(win.get_transient_for());
-	// global.log(win.get_pid());
-	// global.log(win.get_wm_class_instance());
-	// global.log(win.is_skip_taskbar());
-	// global.log(win.get_layer());
-	// global.log(win.get_role());
-	// global.log(win.get_window_type());
-	// global.log(win.get_gtk_application_id ());
-	// global.log(win.get_gtk_unique_bus_name ());
-	// global.log(win.get_gtk_application_object_path ());
-	// global.log(win.get_gtk_window_object_path ());
-	// global.log(win.get_gtk_app_menu_object_path ());
-	// global.log(win.get_gtk_menubar_object_path ());
+
+	if(win.is_skip_taskbar()){ //i f menu (menus doesn't have a wm_class which is why we use pid_wm_class_pair)
+		if(couple_menu_behavior){
+			if(should_invert(wm_class)){ //should_invert_menu automatically handles whitelist and blacklist
+				actor.add_effect_with_name('invert-color', effect);
+				currently_inverted_windows.add(win.toString());
+		  	win.invert_window_tag = true;
+			}
+		}
+		else { //if decoupled
+			if(should_invert_menu(wm_class)){ //should_invert_menu automatically handles whitelist and blacklist
+				actor.add_effect_with_name('invert-color', effect);
+				currently_inverted_windows.add(win.toString());
+				win.invert_window_tag = true;
+			}
+		}
+	}
+
+	else if (should_invert(wm_class)){ //just for normal windows
+		let overview_feature = (utilize_xrandr && Main.overview._shown); //true if utilizing xrandr in overview
+		if(!overview_feature){
+			actor.add_effect_with_name('invert-color', effect);
+	  	win.invert_window_tag = true;
+		}
+		currently_inverted_windows.add(win.toString()); //if window should be inverted, it would re inverted regardless of overview featuer
+	}
+	global.log("toString: ", win.toString());
+	global.log("transiet_for: ", win.get_transient_for());
+	global.log("pid: ", win.get_pid());
+	global.log("get_wm_class: ", win.get_wm_class_instance());
+	global.log("is_skip_taskbar: ", win.is_skip_taskbar());
+	global.log("layer: ", win.get_layer());
+	global.log("role: ", win.get_role());
+	global.log("get_window_type: ", win.get_window_type());
+	global.log("application_id: ", win.get_gtk_application_id ());
+	global.log("bus_name: ", win.get_gtk_unique_bus_name ());
+	global.log("application_path: ", win.get_gtk_application_object_path ());
+	global.log("window_path: ", win.get_gtk_window_object_path ());
+	global.log("app_menu_path: ", win.get_gtk_app_menu_object_path ());
+	global.log("menubar_path: ", win.get_gtk_menubar_object_path ());
 })
 
 InvertWindow.prototype = {
-	oNchangedShaderSourceSelector: function() {
-		let new_SELECT_SHADER_SOURCE = this.settings.get_string('select-shader-source');
-		let should_restart = this.settings.get_boolean('restart-after-selector-change');//don't need to keep state of should_restart
-		if(new_SELECT_SHADER_SOURCE != SELECT_SHADER_SOURCE && should_restart) {
-	    SELECT_SHADER_SOURCE = new_SELECT_SHADER_SOURCE;
-			global.get_window_actors().forEach(function(actor) {
-				let meta_window = actor.get_meta_window();
-				if(currently_inverted_windows[meta_window.toString()]) { //user forced
+	restart_shader: function() {
+		let should_restart = this.settings.get_boolean('restart-after-selector-change'); //don't need to keep state of should_restart
+		if (!should_restart) return 0 ;
+		global.get_window_actors().forEach(function(actor) {
+			let meta_window = actor.get_meta_window();
+			if(currently_inverted_windows.get(meta_window.toString())) { //user forced
+					actor.remove_effect_by_name('invert-color');
+					let effect = new InvertWindowEffect();
+					actor.add_effect_with_name('invert-color', effect);
+			}
+		}, this);
+	},
+	restart_windows: function() {
+		let should_restart = this.settings.get_boolean('restart-after-selector-change'); //don't need to keep state of should_restart
+		if (!should_restart) return 0 ;
+		global.get_window_actors().forEach(function(actor) {
+			let meta_window = actor.get_meta_window();
+			if (! meta_window.is_skip_taskbar()) { // don't change menus
+				if(currently_inverted_windows.get(meta_window.toString())) { //user forced
 						actor.remove_effect_by_name('invert-color');
+						currently_inverted_windows.remove(meta_window.toString());
+				}
+				if(should_invert(meta_window.get_wm_class())) { //user forced
 						let effect = new InvertWindowEffect();
 						actor.add_effect_with_name('invert-color', effect);
+						currently_inverted_windows.add(meta_window.toString());
 				}
-			}, this);
+		}
+		}, this);
+	},
+
+	restart_menus: function() {
+		let should_restart = this.settings.get_boolean('restart-after-selector-change'); //don't need to keep state of should_restart
+		if (!should_restart) return 0 ;
+		global.get_window_actors().forEach(function(actor) {
+			let meta_window = actor.get_meta_window();
+			if (meta_window.is_skip_taskbar()) {// don't change windows
+				if(currently_inverted_windows.get(meta_window.toString())) { //user forced
+						actor.remove_effect_by_name('invert-color');
+						currently_inverted_windows.remove(meta_window.toString());
+				}
+				if(should_invert_menu(meta_window.get_wm_class())) { //user forced
+						let effect = new InvertWindowEffect();
+						actor.add_effect_with_name('invert-color', effect);
+						currently_inverted_windows.add(meta_window.toString());
+				}
+		}
+		}, this);
+
+	},
+	oNrestartAfterChange: function() {
+		this.restart_extension();
+		this.restart_menus();
+	},
+
+	oNchangedShaderSourceSelector: function() {
+		let new_SELECT_SHADER_SOURCE = this.settings.get_string('select-shader-source');
+		if(new_SELECT_SHADER_SOURCE != SELECT_SHADER_SOURCE) { //update only if different
+			SELECT_SHADER_SOURCE = new_SELECT_SHADER_SOURCE; //update shader so that restarting affects it
+	    this.restart_shader();
 		}
 		SELECT_SHADER_SOURCE = new_SELECT_SHADER_SOURCE; //if should_restart is false we still update
 	},
@@ -246,15 +334,44 @@ InvertWindow.prototype = {
 		schema.set_strv('all-user-shader-source-keys', Object.keys(shader_sources));
 		//schema.set_value('user-shader-sources', new imports.gi.GLib.Variant("a{ss}", USER_SHADER_SOURCES));
 	},
-	oNchangedBlackList: function() {
-		black_list = schema.get_strv('black-list').map((x) => x.toLowerCase());
-	},
-	oNchangedWhiteList: function() {
-	 	white_list = schema.get_strv('white-list').map((x) => x.toLowerCase());
-	},
 	oNchangedUtilizeXrandr: function() {
 		utilize_xrandr = this.settings.get_boolean('utilize-xrandr');
 	},
+
+
+	oNchangedWindowInversionBehavior: function() {
+		window_inversion_behavior = this.settings.get_boolean('window-inversion-behavior');
+		this.restart_windows();
+	},
+	oNchangedWindowBlackList: function() {
+		window_black_list = schema.get_strv('black-list').map((x) => x.toLowerCase());
+		this.restart_windows();
+	},
+	oNchangedWindowWhiteList: function() {
+	 	window_white_list = schema.get_strv('white-list').map((x) => x.toLowerCase());
+		this.restart_windows();
+	},
+
+
+	oNchangedCoupleMenuBehavior: function() {
+		couple_menu_behavior = this.settings.get_boolean('couple-menu-behavior');
+		this.restart_menus();
+	},
+	oNchangedMenuInversionBehavior: function() {
+		menu_inversion_behavior = this.settings.get_boolean('menu-inversion-behavior');
+		this.restart_menus();
+	},
+	oNchangedMenuBlackList: function() {
+		menu_black_list = schema.get_strv('menu-black-list').map((x) => x.toLowerCase());
+		this.restart_menus();
+	},
+	oNchangedMenuWhiteList: function() {
+		menu_white_list = schema.get_strv('menu-white-list').map((x) => x.toLowerCase());
+		this.restart_menus();
+	},
+
+
+
 
 	spawn_xrandr: function() {
 		Util.spawn(['/bin/bash', '-c', "xrandr-invert-colors"]);
@@ -341,7 +458,7 @@ InvertWindow.prototype = {
 	add: function() {
 		global.get_window_actors().forEach(function(actor) {
 			let meta_window = actor.get_meta_window();
-			if(currently_inverted_windows[meta_window.toString()]) { //equivalent to should_invert(meta_window.get_wm_class()) if done right
+			if(currently_inverted_windows.get(meta_window.toString())) { //equivalent to should_invert(meta_window.get_wm_class()) if done right
 					let effect = new InvertWindowEffect();
 					actor.add_effect_with_name('invert-color', effect);
 					meta_window._invert_window_tag = true;
@@ -402,6 +519,11 @@ InvertWindow.prototype = {
 		this._signalsHandler.addWithLabel("settings",
 			[
 					this.settings,
+					'changed::restart-after-selector-change',
+					Lang.bind(this, this.oNrestartAfterChange)
+			],
+			[
+					this.settings,
 					'changed::select-shader-source',
 					Lang.bind(this, this.oNchangedShaderSourceSelector)
 			],
@@ -412,18 +534,48 @@ InvertWindow.prototype = {
 			],
 			[
 					this.settings,
+					'changed::utilize-xrandr',
+					Lang.bind(this, this.oNchangedUtilizeXrandr)
+			],
+
+
+
+			[
+					this.settings,
+					'changed::window-inversion-behavior',
+					Lang.bind(this, this.oNchangedWindowInversionBehavior)
+			],
+			[
+					this.settings,
 					'changed::black-list',
-					Lang.bind(this, this.oNchangedBlackList)
+					Lang.bind(this, this.oNchangedWindowBlackList)
 			],
 			[
 					this.settings,
 					'changed::white-list',
-					Lang.bind(this, this.oNchangedWhiteList)
+					Lang.bind(this, this.oNchangedWindowWhiteList)
+			],
+
+
+			[
+					this.settings,
+					'changed::couple-menu-behavior',
+					Lang.bind(this, this.oNchangedCoupleMenuBehavior)
 			],
 			[
 					this.settings,
-					'changed::utilize-xrandr',
-					Lang.bind(this, this.oNchangedUtilizeXrandr)
+					'changed::menu-inversion-behavior',
+					Lang.bind(this, this.oNchangedMenuInversionBehavior)
+			],
+			[
+					this.settings,
+					'changed::menu-black-list',
+					Lang.bind(this, this.oNchangedMenuBlackList)
+			],
+			[
+					this.settings,
+					'changed::menu-white-list',
+					Lang.bind(this, this.oNchangedMenuWhiteList)
 			]
 		);
 	}

@@ -19,17 +19,38 @@ function buildPrefsWidget () { // eslint-disable-line no-unused-vars
   const allUserShaderSourceKeys = schema.settings_schema.get_key('all-user-shader-source-keys').get_summary()
   const allUserShaderSourceKeysDescription = schema.settings_schema.get_key('all-user-shader-source-keys').get_description()
 
+
+  const restartAfterChange = schema.settings_schema.get_key('restart-after-selector-change').get_summary()
+  const restartAfterChangeDescription = schema.settings_schema.get_key('restart-after-selector-change').get_description()
+
+
+  const utilizeXrandr = schema.settings_schema.get_key('utilize-xrandr').get_summary()
+  const utilizeXrandrDescription = schema.settings_schema.get_key('utilize-xrandr').get_description()
+
+
+  const windowInversionBehavior = schema.settings_schema.get_key('window-inversion-behavior').get_summary()
+  const windowInversionBehaviorDescription = schema.settings_schema.get_key('window-inversion-behavior').get_description()
+
   const blackList = schema.settings_schema.get_key('black-list').get_summary()
   const blackListDescription = schema.settings_schema.get_key('black-list').get_description()
 
   const whiteList = schema.settings_schema.get_key('white-list').get_summary()
   const whiteListDescription = schema.settings_schema.get_key('white-list').get_description()
 
-  const restartAfterChange = schema.settings_schema.get_key('restart-after-selector-change').get_summary()
-  const restartAfterChangeDescription = schema.settings_schema.get_key('restart-after-selector-change').get_description()
 
-  const utilizeXrandr = schema.settings_schema.get_key('utilize-xrandr').get_summary()
-  const utilizeXrandrDescription = schema.settings_schema.get_key('utilize-xrandr').get_description()
+  const coupleMenuBehavior = schema.settings_schema.get_key('couple-menu-behavior').get_summary()
+  const coupleMenuBehaviorDescription = schema.settings_schema.get_key('couple-menu-behavior').get_description()
+
+  const menuInversionBehavior = schema.settings_schema.get_key('menu-inversion-behavior').get_summary()
+  const menuInversionBehaviorDescription = schema.settings_schema.get_key('menu-inversion-behavior').get_description()
+
+  const menuBlackList = schema.settings_schema.get_key('menu-black-list').get_summary()
+  const menuBlackListDescription = schema.settings_schema.get_key('menu-black-list').get_description()
+
+  const menuWhiteList = schema.settings_schema.get_key('menu-white-list').get_summary()
+  const menuWhiteListDescription = schema.settings_schema.get_key('menu-white-list').get_description()
+
+
 
   // Create children objects
   const widgets = [
@@ -136,17 +157,38 @@ function buildPrefsWidget () { // eslint-disable-line no-unused-vars
     },
     {
       type: 'Label',
+      params: { label: `${windowInversionBehavior}: ` },
+      tooltip: windowInversionBehaviorDescription,
+      align: Gtk.Align.END,
+      attach: [0, 6, 1, 1]
+    },
+    {
+      type: 'ComboBoxText',
+      params: {},
+      tooltip: windowInversionBehaviorDescription,
+      align: Gtk.Align.START,
+      attach: [1, 6, 1, 1],
+      connect: {
+        'changed': self => {
+          schema.set_boolean('window-inversion-behavior', self.get_active_text() == 'window black list')
+        }
+      },
+      insert: ["window black list","window white list"],
+      active: schema.get_boolean('window-inversion-behavior') ? "window black list": "window white list"
+    },
+    {
+      type: 'Label',
       params: { label: `${blackList}: ` },
       tooltip: blackListDescription,
       align: Gtk.Align.END,
-      attach: [0, 6, 1, 1]
+      attach: [0, 7, 1, 1]
     },
     {
       type: 'Entry',
       params: {text: schema.get_strv('black-list').toString()},
       tooltip: blackListDescription,
       align: Gtk.Align.START,
-      attach: [1, 6, 1, 1],
+      attach: [1, 7, 1, 1],
       connect: {
         'changed': self => {
           schema.set_strv('black-list', self.text.split(','))
@@ -158,14 +200,14 @@ function buildPrefsWidget () { // eslint-disable-line no-unused-vars
       params: { label: `${whiteList}: ` },
       tooltip: whiteListDescription,
       align: Gtk.Align.END,
-      attach: [0, 7, 1, 1]
+      attach: [0, 8, 1, 1]
     },
     {
       type: 'Entry',
       params: {text: schema.get_strv('white-list').toString()},
       tooltip: whiteListDescription,
       align: Gtk.Align.START,
-      attach: [1, 7, 1, 1],
+      attach: [1, 8, 1, 1],
       connect: {
         'changed': self => {
           schema.set_strv('white-list', self.text.split(','))
@@ -174,10 +216,90 @@ function buildPrefsWidget () { // eslint-disable-line no-unused-vars
     },
     {
       type: 'Label',
+      params: { label: `${coupleMenuBehavior}: ` },
+      tooltip: coupleMenuBehaviorDescription,
+      align: Gtk.Align.END,
+      attach: [0, 9, 1, 1]
+    },
+    {
+      type: 'ComboBoxText',
+      params: {},
+      tooltip: coupleMenuBehaviorDescription,
+      align: Gtk.Align.START,
+      attach: [1, 9, 1, 1],
+      connect: {
+        'changed': self => {
+          schema.set_boolean('couple-menu-behavior', self.get_active_text() == 'true')
+        }
+      },
+      insert: ["true","false"],
+      active: schema.get_boolean('couple-menu-behavior').toString()
+    },
+    {
+      type: 'Label',
+      params: { label: `${menuInversionBehavior}: ` },
+      tooltip: menuInversionBehaviorDescription,
+      align: Gtk.Align.END,
+      attach: [0, 10, 1, 1]
+    },
+    {
+      type: 'ComboBoxText',
+      params: {},
+      tooltip: menuInversionBehaviorDescription,
+      align: Gtk.Align.START,
+      attach: [1, 10, 1, 1],
+      connect: {
+        'changed': self => {
+          schema.set_boolean('menu-inversion-behavior', self.get_active_text() == 'menu black list')
+        }
+      },
+      insert: ["menu black list","menu white list"],
+      active: schema.get_boolean('menu-inversion-behavior') ? "menu black list":  "menu white list"
+    },
+    {
+      type: 'Label',
+      params: { label: `${menuBlackList}: ` },
+      tooltip: menuBlackListDescription,
+      align: Gtk.Align.END,
+      attach: [0, 11, 1, 1]
+    },
+    {
+      type: 'Entry',
+      params: {text: schema.get_strv('menu-black-list').toString()},
+      tooltip: menuBlackListDescription,
+      align: Gtk.Align.START,
+      attach: [1, 11, 1, 1],
+      connect: {
+        'changed': self => {
+          schema.set_strv('menu-black-list', self.text.split(','))
+        }
+      }
+    },
+    {
+      type: 'Label',
+      params: { label: `${menuWhiteList}: ` },
+      tooltip: menuWhiteListDescription,
+      align: Gtk.Align.END,
+      attach: [0, 12, 1, 1]
+    },
+    {
+      type: 'Entry',
+      params: {text: schema.get_strv('menu-white-list').toString()},
+      tooltip: menuWhiteListDescription,
+      align: Gtk.Align.START,
+      attach: [1, 12, 1, 1],
+      connect: {
+        'changed': self => {
+          schema.set_strv('menu-white-list', self.text.split(','))
+        }
+      }
+    },
+    {
+      type: 'Label',
       params: { label: 'change org.gnome.shell.extensions.invert-window.user-shader-sources in dconf-editor or gsettings to edit user-shader-sources.' },
       tooltip: "set current user shader sources",
       align: Gtk.Align.CENTER,
-      attach: [0, 8, 2, 1]
+      attach: [0, 13, 2, 1]
     }
   ]
 
